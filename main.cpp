@@ -33,10 +33,15 @@ public:
     string getNumber();
     string getAuthor();
     string getTitle();
+    BorrowerRecord* getBorrower();
 
-    // Methods
+    // Hiển thị thông tin quyển sách
     void display();
+    // Liên hết với borrower
     void attachBorrower(BorrowerRecord* borrower);
+    // Hủy liên kết với borrower hiện tại
+    void detachBorrower();
+    // Kiểm tra quyển sách đã cho mượn hay chưa
     bool isAvailable();
 };
 
@@ -81,6 +86,10 @@ string Book::getTitle() {
     return this->title;
 }
 
+BorrowerRecord* Book::getBorrower() {
+    return this->borrower;
+}
+
 // Hiển thị thông tin sách
 void Book::display() {
     cout << "=== Book ===\n";
@@ -94,8 +103,12 @@ void Book::attachBorrower(BorrowerRecord* borrower) {
     this->setBorrower(borrower);
 }
 
+void Book::detachBorrower() {
+    this->setBorrower();
+}
+
 bool Book::isAvailable() {
-    if (this->borrower != nullptr) {
+    if (this->getBorrower() != nullptr) {
         return false;
     }
     return true;
@@ -177,7 +190,10 @@ class Library {
     void display();
     // Destructor để dọn dẹp các hồ sơ người mượn được cấp phát động
     ~Library();
+    // Cho mượn borrower có name mượn quyển sách có số là number
     void lendOneBook(string number, string name);
+    // Trả sách với số là number
+    void returnOneBook(string number);
 };
 
 // ========================Library's METHODS=========================
@@ -209,16 +225,17 @@ void Library::removeOneBook(Book *book) {
 }
 
 void Library::deleteBorrowerRecord(string borrowerName) {
-    auto it = find_if(
-        this->borrowerRecords.begin(), 
-        this->borrowerRecords.end(), 
-        [&](BorrowerRecord *record) {
-            return record->getName() == borrowerName;
-    });
+    BorrowerRecord *foundRecord = nullptr;
+    for (auto record : this->borrowerRecords) {
+        if (record->getName() == borrowerName) {
+            foundRecord = record;
+            break;
+        }
+    }
     
-    if (it != this->borrowerRecords.end()) {
-        delete *it;                      
-        this->borrowerRecords.erase(it); 
+    if (foundRecord) {                     
+        this->borrowerRecords.remove(foundRecord); 
+        delete foundRecord; 
     }
 }
 
@@ -297,8 +314,38 @@ void Library::lendOneBook(string number, string name) {
     cout << "Lend book " << number << " to borrower " << name << endl;
 }
 
+void Library::returnOneBook(string number) {
+    Book *book = nullptr;
+    // Tìm book trong kho stock và lưu lại nếu có
+    for (auto b : this->stock) {
+        if (b->getNumber() == number) {
+            book = b;
+            break;
+        }
+    }
+
+    // Kiểm tra trong kho stock có quyển sách nào mang mã số number không
+    if (book == nullptr) {
+        cout << "Book with " << number << " is not found\n";
+        return;
+    }
+
+    // Kiểm tra đối tượng sách ở bước 1 có đang liên kết với người mượn nào không
+    BorrowerRecord *borrower = book->getBorrower();
+    if (borrower == nullptr) {
+        cout << "Borrower is not found\n";
+        return;
+    }
+
+    // Huỷ liên kết giữa Book và Borrower hai chiều
+    book->detachBorrower();
+    borrower->detachBook(book);
+
+    cout << "Borrower " << borrower->getName() << " return book with number " << book->getNumber() << endl;
+}
 
 
+// =================MAIN====================
 // Hàm main với các trường hợp kiểm tra cho hệ thống thư viện
 int main() {
     cout <<"The Library Application\n" << endl;
@@ -307,16 +354,16 @@ int main() {
     Library lib;
     
     // Tạo các instance sách
-    Book* first = new Book("000","Aso Haro","Alice in Borderland");    
-    Book* gege = new Book("036","Danh","Ban la cau nho cua toi");    
-    Book second("001","Ha Van Thao","Co so lap trinh huong doi tuong");
+    Book* first = new Book("000","An danh", "Nhung nguoi di hoc vao thu 3");    
+    Book* gege = new Book("036","Danh", "Happy Summer");    
+    Book second("001","Ha Van Thao", "Pointer is so ezzzzzzz");
+    Book hehe("003","Nguyen Hien Luong","Huy diet co so du lieu");
     
     // Kiểm tra thêm sách vào thư viện
     lib.addOneBook(gege);
     lib.addOneBook(first);
-    lib.display();
-    
     lib.addOneBook(&second);
+    lib.addOneBook(&hehe);
     lib.display();
     
     // Kiểm tra xóa sách khỏi kho
@@ -332,11 +379,17 @@ int main() {
     lib.deleteBorrowerRecord("Thao");
     lib.display();
     
+    // Kiểm tra các test cases mượn sách
     lib.lendOneBook("067", "Sang"); // test case 1
     lib.lendOneBook("018", "Sang"); // test case 2
     lib.lendOneBook("001", "Thao"); // test case 3
     lib.lendOneBook("001", "Sang"); // test case 4
     lib.lendOneBook("036", "Sang"); // test case 4
+
+    // Kiểm tra các test cases trả sách
+    lib.returnOneBook("002"); // trả sách với number không hợp lệ
+    lib.returnOneBook("003"); // trả sách chưa được mượn
+    lib.returnOneBook("001"); // Sang trả sách với number 001 thành công
 
     // Dọn dẹp sách được cấp phát động
     lib.removeOneBook(first);
