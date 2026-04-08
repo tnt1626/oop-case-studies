@@ -14,16 +14,16 @@ int main() {
     Library lib;
     
     // Tạo các instance sách
-    Book* first = new Book("000","Aso Haro","Alice in Borderland");    
-    Book* gege = new Book("036","Danh","Ban la cau nho cua toi");    
-    Book second("001","Ha Van Thao","Co so lap trinh huong doi tuong");
+    Book* first = new Book("000","An danh", "Nhung nguoi di hoc vao thu 3");    
+    Book* gege = new Book("036","Danh", "Happy Summer");    
+    Book second("001","Ha Van Thao", "Pointer is so ezzzzzzz");
+    Book hehe("003","Nguyen Hien Luong","Huy diet co so du lieu");
     
     // Kiểm tra thêm sách vào thư viện
     lib.addOneBook(gege);
     lib.addOneBook(first);
-    lib.display();
-    
     lib.addOneBook(&second);
+    lib.addOneBook(&hehe);
     lib.display();
     
     // Kiểm tra xóa sách khỏi kho
@@ -39,11 +39,17 @@ int main() {
     lib.deleteBorrowerRecord("Thao");
     lib.display();
     
+    // Kiểm tra các test cases mượn sách
     lib.lendOneBook("067", "Sang"); // test case 1
     lib.lendOneBook("018", "Sang"); // test case 2
     lib.lendOneBook("001", "Thao"); // test case 3
     lib.lendOneBook("001", "Sang"); // test case 4
     lib.lendOneBook("036", "Sang"); // test case 4
+
+    // Kiểm tra các test cases trả sách
+    lib.returnOneBook("002"); // trả sách với number không hợp lệ
+    lib.returnOneBook("003"); // trả sách chưa được mượn
+    lib.returnOneBook("001"); // Sang trả sách với number 001 thành công
 
     // Dọn dẹp sách được cấp phát động
     lib.removeOneBook(first);

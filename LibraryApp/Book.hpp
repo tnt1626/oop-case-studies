@@ -34,10 +34,12 @@ public:
     string getNumber();
     string getAuthor();
     string getTitle();
+    BorrowerRecord* getBorrower();
 
     // Methods
     void display();
     void attachBorrower(BorrowerRecord* borrower);
+    void detachBorrower();
     bool isAvailable();
 };
 

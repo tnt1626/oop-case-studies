@@ -30,16 +30,17 @@ void Library::removeOneBook(Book *book) {
 }
 
 void Library::deleteBorrowerRecord(string borrowerName) {
-    auto it = find_if(
-        this->borrowerRecords.begin(), 
-        this->borrowerRecords.end(), 
-        [&](BorrowerRecord *record) {
-            return record->getName() == borrowerName;
-    });
+    BorrowerRecord *foundRecord = nullptr;
+    for (auto record : this->borrowerRecords) {
+        if (record->getName() == borrowerName) {
+            foundRecord = record;
+            break;
+        }
+    }
     
-    if (it != this->borrowerRecords.end()) {
-        delete *it;                      
-        this->borrowerRecords.erase(it); 
+    if (foundRecord) {                     
+        this->borrowerRecords.remove(foundRecord); 
+        delete foundRecord; 
     }
 }
 
@@ -118,3 +119,32 @@ void Library::lendOneBook(string number, string name) {
     cout << "Lend book " << number << " to borrower " << name << endl;
 }
 
+void Library::returnOneBook(string number) {
+    Book *book = nullptr;
+    // Tìm book trong kho stock và lưu lại nếu có
+    for (auto b : this->stock) {
+        if (b->getNumber() == number) {
+            book = b;
+            break;
+        }
+    }
+
+    // Kiểm tra trong kho stock có quyển sách nào mang mã số number không
+    if (book == nullptr) {
+        cout << "Book with " << number << " is not found\n";
+        return;
+    }
+
+    // Kiểm tra đối tượng sách ở bước 1 có đang liên kết với người mượn nào không
+    BorrowerRecord *borrower = book->getBorrower();
+    if (borrower == nullptr) {
+        cout << "Borrower is not found\n";
+        return;
+    }
+
+    // Huỷ liên kết giữa Book và Borrower hai chiều
+    book->detachBorrower();
+    borrower->detachBook(book);
+
+    cout << "Borrower " << borrower->getName() << " return book with number " << book->getNumber() << endl;
+}

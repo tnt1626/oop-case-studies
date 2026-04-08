@@ -43,6 +43,10 @@ string Book::getTitle() {
     return this->title;
 }
 
+BorrowerRecord* Book::getBorrower() {
+    return this->borrower;
+}
+
 // Hiển thị thông tin sách
 void Book::display() {
     cout << "=== Book ===\n";
@@ -54,6 +58,10 @@ void Book::display() {
 // Gắn người mượn cho cuốn sách này
 void Book::attachBorrower(BorrowerRecord* borrower) {
     this->setBorrower(borrower);
+}
+
+void Book::detachBorrower() {
+    this->setBorrower();
 }
 
 bool Book::isAvailable() {

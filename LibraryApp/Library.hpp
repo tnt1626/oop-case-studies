@@ -11,7 +11,6 @@ using namespace std;
 class Book;
 class BorrowerRecord;
 
-// Lớp Library quản lý bộ sưu tập sách và hồ sơ người mượn
 class Library {
     private:
     string name;                          // Tên của thư viện
@@ -39,5 +38,8 @@ class Library {
     void display();
     // Destructor để dọn dẹp các hồ sơ người mượn được cấp phát động
     ~Library();
+    // Cho mượn borrower có name mượn quyển sách có số là number
     void lendOneBook(string number, string name);
+    // Trả sách với số là number
+    void returnOneBook(string number);
 };
