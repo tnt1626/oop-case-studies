@@ -92,7 +92,6 @@ BorrowerRecord* Book::getBorrower() {
 
 // Hiển thị thông tin sách
 void Book::display() {
-    cout << "=== Book ===\n";
     cout << "Number: " << this->getNumber() << endl;
     cout << "Author: " << this->getAuthor() << endl;
     cout << "Title: " << this->getTitle() << endl;
@@ -168,8 +167,11 @@ class Library {
     string name;                          // Tên của thư viện
     list<Book *> stock;                   // Danh sách sách có sẵn trong kho
     list<BorrowerRecord *> borrowerRecords; // Danh sách tất cả hồ sơ người mượn
-
+    
     public:
+    // Xóa hồ sơ người mượn theo tên
+    void deleteBorrowerRecord(string borrowerName); // Sẽ chuyển sang private sau đó
+    
     // Constructor với tên
     Library(string name);
     // Constructor mặc định
@@ -182,12 +184,15 @@ class Library {
     void addOneBook(Book *book);
     // Xóa một cuốn sách khỏi kho
     void removeOneBook(Book *book);
-    // Xóa hồ sơ người mượn theo tên
-    void deleteBorrowerRecord(string borrowerName);
+    
     // Xóa hồ sơ người mượn theo con trỏ
     void deleteBorrowerRecord(BorrowerRecord *borrower);
     // Hiển thị kho sách và hồ sơ người mượn của thư viện
     void display();
+    // Hiển thị kho sách có sẵn để cho mượn
+    void displayAvailableBooksForLoan();
+    // Hiển thị danh sách sách đã cho mượn
+    void displayBooksOnLoan();
     // Destructor để dọn dẹp các hồ sơ người mượn được cấp phát động
     ~Library();
     // Cho mượn borrower có name mượn quyển sách có số là number
@@ -211,12 +216,12 @@ void Library::setName(string name) {
 
 void Library::registerOneBorrower(string borrowerName) {
     BorrowerRecord *borrower = new BorrowerRecord(borrowerName);
-    borrowerRecords.push_front(borrower);
+    borrowerRecords.push_back(borrower); // đổi thành push_back
 }
 
 
 void Library::addOneBook(Book *book) {
-    this->stock.push_front(book);
+    this->stock.push_back(book); // đổi thành push_back
 }
 
 
@@ -263,6 +268,25 @@ void Library::display() {
     cout << "=== BORROWER RECORD ===\n";
     for (auto record : this->borrowerRecords) {
         cout << "Name of borrower: " << record->getName() << endl;
+    }
+    cout << endl;
+}
+
+void Library::displayAvailableBooksForLoan() {
+    cout << "=== Available books for loan ===\n";
+    for (auto book : this->stock) {
+        if (book->isAvailable()) {
+            book->display();
+        }
+    }
+}
+
+void Library::displayBooksOnLoan() {
+    cout << "=== Books on loan ===\n";
+    for (auto book : this->stock) {
+        if (book->getBorrower() != nullptr) {
+            book->display();
+        }
     }
 }
 
@@ -378,6 +402,9 @@ int main() {
     // Kiểm tra xóa hồ sơ người mượn
     lib.deleteBorrowerRecord("Thao");
     lib.display();
+
+    // Hiện thị các sách có thể cho mượn
+    lib.displayAvailableBooksForLoan();
     
     // Kiểm tra các test cases mượn sách
     lib.lendOneBook("067", "Sang"); // test case 1
@@ -386,6 +413,9 @@ int main() {
     lib.lendOneBook("001", "Sang"); // test case 4
     lib.lendOneBook("036", "Sang"); // test case 4
 
+    // Hiển thị danh sách các sách đã cho mượn
+    lib.displayBooksOnLoan();
+
     // Kiểm tra các test cases trả sách
     lib.returnOneBook("002"); // trả sách với number không hợp lệ
     lib.returnOneBook("003"); // trả sách chưa được mượn
@@ -393,6 +423,7 @@ int main() {
 
     // Dọn dẹp sách được cấp phát động
     lib.removeOneBook(first);
+    lib.removeOneBook(gege);
     delete(first);
     delete(gege);
 
