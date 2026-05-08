@@ -185,8 +185,6 @@ class Library {
     // Xóa một cuốn sách khỏi kho
     void removeOneBook(Book *book);
     
-    // Xóa hồ sơ người mượn theo con trỏ
-    void deleteBorrowerRecord(BorrowerRecord *borrower);
     // Hiển thị kho sách và hồ sơ người mượn của thư viện
     void display();
     // Hiển thị kho sách có sẵn để cho mượn
@@ -244,19 +242,6 @@ void Library::deleteBorrowerRecord(string borrowerName) {
     }
 }
 
-// Xóa hồ sơ người mượn theo con trỏ
-void Library::deleteBorrowerRecord(BorrowerRecord *borrower) {
-    auto it = find(
-        this->borrowerRecords.begin(), 
-        this->borrowerRecords.end(), 
-        borrower
-    );
-    
-    if (it != this->borrowerRecords.end()) {
-        delete *it;                      
-        this->borrowerRecords.erase(it); 
-    }
-}
 
 // Hiển thị kho sách và hồ sơ người mượn của thư viện
 void Library::display() {
