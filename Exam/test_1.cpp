@@ -141,6 +141,8 @@ public:
     void returnOneComputer(string id);
 
     void display();
+
+    ~Company();
 };  
 
 Company::Company(string name, string taxCode) {
@@ -269,6 +271,14 @@ void Company::display() {
         computer->display();
         cout << "=============================\n";
     }
+}
+
+Company::~Company() {
+    for (auto record : this->records) {
+        delete(record);
+    }
+    this->records.clear();
+    this->computers.clear();
 }
 
 int main() {
