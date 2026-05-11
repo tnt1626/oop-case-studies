@@ -1,5 +1,6 @@
 #include <iostream>
 #include <list>
+#include <map>
 using namespace std;
 
 // --------------------------------Employee--------------------------------
@@ -118,7 +119,7 @@ void ProjectLeader::display() {
 // --------------------------------SoftwareHouse--------------------------------
 class SoftwareHouse {
     string name;
-    list<Programmer *> staff;
+    map<string, Programmer *> staff;
 public:
     // constructor
     SoftwareHouse(string name);
@@ -144,13 +145,18 @@ void SoftwareHouse::setName(string name) {
 }
 
 void SoftwareHouse::addProgrammer(Programmer *programmer) {
-    this->staff.push_back(programmer);
+    string number = programmer->getNumber();
+    if(this->staff.count(number)) {
+        cout << "Programmer with number = " << number << " existed\n";
+        return;
+    }
+    this->staff[programmer->getNumber()] = programmer;
 }
 
 void SoftwareHouse::display() {
     cout << "Software House Name: " << this->getName() << endl;
     cout << "Programmers:\n";
-    for (auto programmer : this->staff) {
+    for (auto const& [number, programmer] : this->staff) {
         programmer->display();
         cout << "========================\n";
     }
