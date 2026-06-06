@@ -58,14 +58,15 @@ double TranscriptEntry::getGrade() {
 class Transcript {
     list<TranscriptEntry *> entries;
 public:
-    // Transcript();   
+    Transcript();   
     ~Transcript();
 
-    void addEntry(Section *section, double grade);
+    void addEntry(TranscriptEntry *entry);
 };
 
-void Transcript::addEntry(Section *section, double grade) {
-    TranscriptEntry *entry = new TranscriptEntry(section, grade);
+Transcript::Transcript() {}
+
+void Transcript::addEntry(TranscriptEntry *entry) {
     entries.push_back(entry);
 }
 
@@ -77,7 +78,83 @@ Transcript::~Transcript() {
 }
 
 
-// -------------------Class Person -------------------
+// ------------------------------------------------------
+//      Course
+// ------------------------------------------------------
+class Course {
+    string courseNo;
+    string courseName;
+    int credits;
+    list<Course *> prerequistes;
+    map<string, Section *> sections;
+
+public:
+    Course(string courseNo, string courseName, int credits);
+
+    string getCourseNo();
+    string getCourseName();
+    int getCredits();
+
+    void setCourseName(string courseName);
+    void setCredits(int credits);
+    void setCourseNo(string courseNo);
+
+    void addPrerequisite(Course *course);
+    Section* scheduleSection(
+        string sectionNo, string dayOfWeek, string timeOfDay, 
+        string room, int seatingCapacity
+    );
+    bool hasPrerequisites();
+
+    void display();
+
+    ~Course();
+};
+
+
+// ------------------------------------------------------
+//      Section
+// ------------------------------------------------------
+class Section {
+    string sectionNo;
+    string dayOfWeek;
+    string timeOfDay;
+    string room;
+    int seatingCapacity;
+    list<Student *> students;
+    Course *course;
+
+    void setCourse(Course *course);
+public:
+    Section(
+        string sectionNo, string dayOfWeek, string timeOfDay, 
+        string room, int seatingCapacity, Course *course
+    );
+
+    string getSectionNo();
+    string getDayOfWeek();
+    string getTimeOfDay();
+    string getRoom();
+    int getSeatingCapacity();
+
+    void setSectionNo(string sectionNo);
+    void setDayOfWeek(string dayOfWeek);
+    void setTimeOfDay(string timeOfDay);
+    void setRoom(string room);
+    void setSeatingCapacity(int seatingCapacity);
+
+    void enroll(Student *student);
+    void drop(Student *student);
+    void postGrade(Student *student, double grade);
+    bool confirmSeatAvailable();
+
+    void display();
+};
+
+
+// ------------------------------------------------------
+//      Person
+// ------------------------------------------------------
 class Person {
     string ssn;
     string name;
@@ -116,7 +193,9 @@ void Person::setName(string name) {
 }
 
 
-// -------------------Class Professor -------------------
+// ------------------------------------------------------
+//      Professor
+// ------------------------------------------------------
 class Professor : public Person {
     string title;
     string department;
@@ -130,7 +209,7 @@ public:
     void setTitle(string title);
     void setDepartment(string department);
 
-    void display();
+    virtual void display();
 };
 
 Professor::Professor(
@@ -165,25 +244,32 @@ void Professor::display() {
 }
 
 
-// -------------------Class Student -------------------
+// ------------------------------------------------------
+//      Student
+// ------------------------------------------------------
 class Student : public Person {
     string major;
     string degree;
+    list<Section *> sections;
+    Transcript *transcript;
     
+    void setMajor(string major);
+    void setDegree(string degree);
 public:
     Student(string major, string degree, string ssn, string name);
 
+    Transcript *getTranscript();
     string getMajor();
     string getDegree();
 
-    void setMajor(string major);
-    void setDegree(string degree);
+    void setTranscript(Transcript *transcript);
+    void addEntry(Section *section, double grade);
+    void addSection(Section *section);
+    void dropSection(Section *section);
+    bool isEnrolledIn(Section *section);
 
-    void addSection();
-    void dropSection();
-    bool isEnrolledIn();
-
-    void display();
+    virtual void display();
+    ~Student();
 };
 
 Student::Student(
@@ -191,6 +277,11 @@ Student::Student(
 ) : Person(ssn, name) {
     this->setMajor(major);
     this->setDegree(degree);
+    this->transcript = new Transcript();
+}
+
+Transcript* Student::getTranscript() {
+    return this->transcript;
 }
 
 string Student::getMajor() {
@@ -209,6 +300,35 @@ void Student::setDegree(string degree) {
     this->degree = degree;
 }
 
+void Student::setTranscript(Transcript *transcript) {
+    this->transcript = transcript;
+}
+
+void Student::addEntry(Section *section, double grade) {
+    TranscriptEntry *entry = new TranscriptEntry(section, grade);
+    this->transcript->addEntry(entry);
+}
+
+void Student::addSection(Section *section) {
+    this->sections.push_back(section);
+}
+
+void Student::dropSection(Section *section) {
+    this->sections.push_back(section);
+}
+
+bool Student::isEnrolledIn(Section *section) {
+    bool isEnrolled = false;
+    string sectionNumber = section->getSectionNo();
+    for (auto current : this->sections) {
+        if (current->getSectionNo() == sectionNumber) {
+            isEnrolled = true;
+            break;
+        }
+    }
+    return isEnrolled;
+}
+
 void Student::display() {
     cout << "-------------Student-------------" << endl;
     cout << "Ssn: " << this->getSsn() << endl;
@@ -217,40 +337,13 @@ void Student::display() {
     cout << "Degree: " << this->getDegree() << endl;
 }
 
-// -------------------Class Section -------------------
-class Section {
-    string sectionNo;
-    string dayOfWeek;
-    string timeOfDay;
-    string room;
-    int seatingCapacity;
-    Course *course;
+Student::~Student() {
+    delete this->transcript;
+}
 
-    void setCourse(Course *course);
-public:
-    Section(
-        string sectionNo, string dayOfWeek, string timeOfDay, 
-        string room, int seatingCapacity, Course *course
-    );
-
-    string getSectionNo();
-    string getDayOfWeek();
-    string getTimeOfDay();
-    string getRoom();
-    int getSeatingCapacity();
-
-    void setSectionNo(string sectionNo);
-    void setDayOfWeek(string dayOfWeek);
-    void setTimeOfDay(string timeOfDay);
-    void setRoom(string room);
-    void setSeatingCapacity(int seatingCapacity);
-
-    void enroll(Student *student);
-    void drop(Student *student);
-    void postGrade(Student *student, double grade);
-    bool confirmSeatAvailable();
-};
-
+// ------------------------------------------------------
+//      Section
+// ------------------------------------------------------
 Section::Section(
     string sectionNo, string dayOfWeek, string timeOfDay, 
     string room, int seatingCapacity, Course *course
@@ -289,37 +382,85 @@ void Section::setSeatingCapacity(int seatingCapacity) {
     this->seatingCapacity = seatingCapacity; 
 }
 
+void Section::enroll(Student *student) {
+    // Testcase 1: No seat available
+    if (!this->confirmSeatAvailable()) {
+        cout << "Section " << this->getSectionNo() << " has no seat available !!! \n";
+        return;
+    }
+
+    // Testcase 2: Haven't passed the prerequisites yet
+
+    // Testcase 3: Already enrolled
+    string ssn = student->getSsn();
+    for (auto currentStudent : this->students) {
+        if (currentStudent->getSsn() == ssn) {
+            cout << "Student " << ssn << " already enrolled Section " << this->getSectionNo() << endl;
+            return;
+        }
+    }
+
+    // Testcase 4: Enroll successfully
+    this->students.push_back(student);
+    cout << "Student " << ssn << " enrolled Section " << this->getSectionNo() << " successfully" << endl;
+}
 
 
-// -------------------Class Course -------------------
-class Course {
-    string courseNo;
-    string courseName;
-    int credits;
-    list<Course *> prerequistes;
-    map<string, Section *> sections;
+void Section::drop(Student *student) {
+    bool found = false;
+    string ssn = student->getSsn();
+    for (auto current : this->students) {
+        if (current->getSsn() == ssn) {
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        cout << "Student " << ssn << " not found in the Section " << this->getSectionNo() << endl;
+        return;
+    }
+    this->students.remove(student);
+    cout << "Removed Student " << ssn << " in the Section " << this->getSectionNo() << " successfully" << endl;
+}
 
-public:
-    Course(string courseNo, string courseName, int credits);
+void Section::postGrade(Student *student, double grade) {
+    bool found = false;
+    string ssn = student->getSsn();
+    for (auto current : this->students) {
+        if (current->getSsn() == ssn) {
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        cout << "Student " << ssn << " not found in the Section " << this->getSectionNo() << endl;
+        return;
+    }
+    student->addEntry(this, grade);
+    cout << "Grade " << grade << " posted for Student " << ssn << " studying in Section " << this->getSectionNo() << " successfully\n";
+}
 
-    string getCourseNo();
-    string getCourseName();
-    int getCredits();
+bool Section::confirmSeatAvailable() {
+    return this->students.size() < this->getSeatingCapacity();
+}
 
-    void setCourseName(string courseName);
-    void setCredits(int credits);
-    void setCourseNo(string courseNo);
+void Section::display() {
+    cout << "-------------Section-------------" << endl;
+    cout << "Section Number: " << this->getSectionNo() << endl;
+    cout << "Day of Week: " << this->getDayOfWeek() << endl;
+    cout << "Time of Day: " << this->getTimeOfDay() << endl;
+    cout << "Room: " << this->getRoom() << endl;
+    cout << "Seating Capacity: " << this->getSeatingCapacity() << endl;
+    cout << "Students: \n";
+    for (auto student : this->students) {
+        cout << "\t- Student Ssn: " << student->getSsn() << endl;
+    }
+    cout << "Course Name: " << this->course->getCourseName() << endl;
+}
 
-    void addPrerequisite(Course *course);
-    Section* scheduleSection(
-        string sectionNo, string dayOfWeek, string timeOfDay, 
-        string room, int seatingCapacity
-    );
-    bool hasPrerequisites();
-
-    ~Course();
-};
-
+// ------------------------------------------------------
+//      Course
+// ------------------------------------------------------
 Course::Course(string courseNo, string courseName, int credits) {
     this->setCourseNo(courseNo);
     this->setCourseName(courseName);
@@ -362,10 +503,26 @@ Section* Course::scheduleSection(
     Section *section = new Section(sectionNo, dayOfWeek, timeOfDay, room, seatingCapacity, course);
 
     this->sections[sectionNo] = section;
+    return section;
 }
 
 bool Course::hasPrerequisites() {
     return !this->prerequistes.empty();
+}
+
+void Course::display() {
+    cout << "-------------Course-------------" << endl;
+    cout << "Course Number: " << this->getCourseNo() << endl;
+    cout << "Course Name: " << this->getCourseName() << endl;
+    cout << "Credits: " << this->getCredits() << endl;
+    cout << "Prerequisites: \n";
+    for (auto prerequisite : this->prerequistes) {
+        cout << "\t- Course Name: " << prerequisite->getCourseName() << endl;
+    }
+    cout << "Sections: \n";
+    for (auto pair : this->sections) {
+        cout << "\t- Section Number: " << pair.second->getSectionNo() << endl;
+    }
 }
 
 Course::~Course() {
@@ -377,12 +534,30 @@ Course::~Course() {
 
 
 
+// ------------------------------------------------------
+//      MAIN
+// ------------------------------------------------------
 int main() {
-    Student haha("Computing", "Master", "123", "Haha");
-    Professor hihi("Supa supa", "Math", "567", "Hihi");
+    Course oop("MTH10407", "OOP", 4);
+    Course dsa("MTH10405", "DSA", 4);
+    Course ai ("MTH10410", "AI",  3);
 
-    haha.display();
+    dsa.addPrerequisite(&oop);
+    ai.addPrerequisite(&oop);
+    ai.addPrerequisite(&dsa);
+    ai.display();
 
-    hihi.display();
+    Student alice("001", "Alice", "Maths",    "Bachelor");
+    Student bob  ("002", "Bob",   "Computer", "Bachelor");
+    Student carol("003", "Carol", "Physics",  "Bachelor");
+    Student dave ("004", "Dave",  "Maths",    "Bachelor");
+    alice.display();
+
+    Section* oopSec = oop.scheduleSection("OOP-24-25-2", "Tue", "8:00AM",  "F202",  3);
+    Section* dsaSec = dsa.scheduleSection("DSA-24-25-2", "Wed", "8:00AM",  "E202A", 30);
+    Section* aiSec  = ai.scheduleSection ("AI-24-25-2",  "Thu", "10:00AM", "B101",  30);
+    oopSec->display();
+    oop.display();
+
     return 0;
 }
