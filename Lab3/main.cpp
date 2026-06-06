@@ -10,6 +10,72 @@ class Student;
 class Professor;
 class Course;
 class Section;
+class Transcript;
+class TranscriptEntry;
+
+
+// ------------------------------------------------------
+//      TranscriptEntry
+// ------------------------------------------------------
+class TranscriptEntry {
+    Section *section;
+    double grade;
+
+    void setSection(Section *section);
+    void setGrade(double grade);
+
+public:
+    TranscriptEntry(Section *section, double grade);
+    Section *getSection();
+    double getGrade();
+};
+
+TranscriptEntry::TranscriptEntry(Section *section, double grade) {
+    this->setSection(section);
+    this->setGrade(grade);
+}
+
+void TranscriptEntry::setSection(Section *section) {
+    this->section = section;
+}
+
+void TranscriptEntry::setGrade(double grade) {
+    this->grade = grade;
+}
+
+Section *TranscriptEntry::getSection() {
+    return this->section;
+}
+
+double TranscriptEntry::getGrade() {
+    return this->grade;
+}
+
+
+// ------------------------------------------------------
+//      Transcript
+// ------------------------------------------------------
+class Transcript {
+    list<TranscriptEntry *> entries;
+public:
+    // Transcript();   
+    ~Transcript();
+
+    void addEntry(Section *section, double grade);
+};
+
+void Transcript::addEntry(Section *section, double grade) {
+    TranscriptEntry *entry = new TranscriptEntry(section, grade);
+    entries.push_back(entry);
+}
+
+Transcript::~Transcript() {
+    for (auto entry : this->entries) {
+        delete entry;
+    }
+    this->entries.clear();
+}
+
 
 // -------------------Class Person -------------------
 class Person {
@@ -103,7 +169,7 @@ void Professor::display() {
 class Student : public Person {
     string major;
     string degree;
-
+    
 public:
     Student(string major, string degree, string ssn, string name);
 
@@ -112,6 +178,10 @@ public:
 
     void setMajor(string major);
     void setDegree(string degree);
+
+    void addSection();
+    void dropSection();
+    bool isEnrolledIn();
 
     void display();
 };
@@ -174,6 +244,11 @@ public:
     void setTimeOfDay(string timeOfDay);
     void setRoom(string room);
     void setSeatingCapacity(int seatingCapacity);
+
+    void enroll(Student *student);
+    void drop(Student *student);
+    void postGrade(Student *student, double grade);
+    bool confirmSeatAvailable();
 };
 
 Section::Section(
@@ -240,6 +315,7 @@ public:
         string sectionNo, string dayOfWeek, string timeOfDay, 
         string room, int seatingCapacity
     );
+    bool hasPrerequisites();
 
     ~Course();
 };
@@ -288,12 +364,18 @@ Section* Course::scheduleSection(
     this->sections[sectionNo] = section;
 }
 
+bool Course::hasPrerequisites() {
+    return !this->prerequistes.empty();
+}
+
 Course::~Course() {
     for(auto& pair : sections) {
         delete(pair.second);
     }
     sections.clear();
 }
+
+
 
 int main() {
     Student haha("Computing", "Master", "123", "Haha");
