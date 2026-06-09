@@ -51,13 +51,13 @@ Bạn có thể biên dịch bằng trình biên dịch `g++` hỗ trợ chuẩn
 
 ### Biên dịch một file đơn lẻ (ví dụ Lab 3):
 ```bash
-g++ -std=c++11 Lab3/main.cpp -o lab3_program
+g++ Lab3/main.cpp -o lab3_program
 ./lab3_program
 ```
 
 ### Biên dịch dự án nhiều file (ví dụ LibraryApp):
 ```bash
-g++ -std=c++11 LibraryApp/*.cpp -o library_app
+g++ LibraryApp/*.cpp -o library_app
 ./library_app
 ```
 
