@@ -62,12 +62,17 @@ public:
     ~Transcript();
 
     void addEntry(TranscriptEntry *entry);
+    list<TranscriptEntry *> getEntries();
 };
 
 Transcript::Transcript() {}
 
 void Transcript::addEntry(TranscriptEntry *entry) {
     entries.push_back(entry);
+}
+
+list<TranscriptEntry *> Transcript::getEntries() {
+    return this->entries;
 }
 
 Transcript::~Transcript() {
@@ -94,6 +99,7 @@ public:
     string getCourseNo();
     string getCourseName();
     int getCredits();
+    list<Course *> getPrerequisites();
 
     void setCourseName(string courseName);
     void setCredits(int credits);
@@ -105,6 +111,7 @@ public:
         string room, int seatingCapacity
     );
     bool hasPrerequisites();
+    // bool verifyCompletion();
 
     void display();
 
@@ -136,6 +143,7 @@ public:
     string getTimeOfDay();
     string getRoom();
     int getSeatingCapacity();
+    Course *getCourse();
 
     void setSectionNo(string sectionNo);
     void setDayOfWeek(string dayOfWeek);
@@ -330,11 +338,15 @@ bool Student::isEnrolledIn(Section *section) {
 }
 
 void Student::display() {
-    cout << "-------------Student-------------" << endl;
+    cout << "-------------Student-----------" << endl;
     cout << "Ssn: " << this->getSsn() << endl;
     cout << "Name: " << this->getName() << endl;
     cout << "Major: " << this->getMajor() << endl;
     cout << "Degree: " << this->getDegree() << endl;
+    for (auto entry : this->getTranscript()->getEntries()) {
+        cout << "Section Number: " << entry->getSection()->getSectionNo() << " with Grade: " << entry->getGrade() << endl;
+    }
+    cout << "------------------------------" << endl;
 }
 
 Student::~Student() {
@@ -361,6 +373,7 @@ string Section::getDayOfWeek() { return this->dayOfWeek; }
 string Section::getTimeOfDay() { return this->timeOfDay; }
 string Section::getRoom() { return this->room; }
 int Section::getSeatingCapacity() { return this->seatingCapacity; }
+Course *Section::getCourse() { return this->course; }
 
 void Section::setCourse(Course *course) {
     this->course = course;
@@ -390,6 +403,32 @@ void Section::enroll(Student *student) {
     }
 
     // Testcase 2: Haven't passed the prerequisites yet
+    Course *course = this->getCourse();
+    Transcript *transcript = student->getTranscript();
+    bool passed = true;
+    if (course->hasPrerequisites()) {
+        passed = false;
+    }
+    list<Course *> prerequisites = course->getPrerequisites();
+    for (auto prerequisite : prerequisites) {
+        string courseNo = prerequisite->getCourseNo();
+        list<TranscriptEntry *> transcriptEntries = transcript->getEntries();
+        for (auto transcriptEntry : transcriptEntries) {
+            if (transcriptEntry->getSection()->getCourse()->getCourseNo() == courseNo) {
+                if (transcriptEntry->getGrade() >= 5) {
+                    passed = true;
+                }
+                else {
+                    passed = false;
+                }
+            }
+        }
+    }
+    if (!passed) {
+        cout << "Student " << student->getSsn() << " haven't pass Prerequisites\n";
+        return; 
+    }
+
 
     // Testcase 3: Already enrolled
     string ssn = student->getSsn();
@@ -445,7 +484,7 @@ bool Section::confirmSeatAvailable() {
 }
 
 void Section::display() {
-    cout << "-------------Section-------------" << endl;
+    cout << "-------------Section------------" << endl;
     cout << "Section Number: " << this->getSectionNo() << endl;
     cout << "Day of Week: " << this->getDayOfWeek() << endl;
     cout << "Time of Day: " << this->getTimeOfDay() << endl;
@@ -456,6 +495,8 @@ void Section::display() {
         cout << "\t- Student Ssn: " << student->getSsn() << endl;
     }
     cout << "Course Name: " << this->course->getCourseName() << endl;
+    cout << "-------------------------------" << endl;
+    
 }
 
 // ------------------------------------------------------
@@ -477,6 +518,10 @@ string Course::getCourseName() {
 
 int Course::getCredits() {
     return this->credits;
+}
+
+list<Course *> Course::getPrerequisites() {
+    return this->prerequistes;
 }
 
 void Course::setCourseNo(string courseNo) {
@@ -523,6 +568,7 @@ void Course::display() {
     for (auto pair : this->sections) {
         cout << "\t- Section Number: " << pair.second->getSectionNo() << endl;
     }
+    cout << "--------------------------------" << endl;
 }
 
 Course::~Course() {
@@ -542,22 +588,57 @@ int main() {
     Course dsa("MTH10405", "DSA", 4);
     Course ai ("MTH10410", "AI",  3);
 
-    dsa.addPrerequisite(&oop);
+    oop.addPrerequisite(&dsa);
     ai.addPrerequisite(&oop);
-    ai.addPrerequisite(&dsa);
-    ai.display();
 
-    Student alice("001", "Alice", "Maths",    "Bachelor");
-    Student bob  ("002", "Bob",   "Computer", "Bachelor");
-    Student carol("003", "Carol", "Physics",  "Bachelor");
-    Student dave ("004", "Dave",  "Maths",    "Bachelor");
-    alice.display();
+    Student alice("Maths", "Alice", "001",    "Bachelor");
 
     Section* oopSec = oop.scheduleSection("OOP-24-25-2", "Tue", "8:00AM",  "F202",  3);
     Section* dsaSec = dsa.scheduleSection("DSA-24-25-2", "Wed", "8:00AM",  "E202A", 30);
     Section* aiSec  = ai.scheduleSection ("AI-24-25-2",  "Thu", "10:00AM", "B101",  30);
-    oopSec->display();
     oop.display();
+    aiSec->display();
+
+    oopSec->enroll(&alice);
+
+    dsaSec->enroll(&alice);
+    dsaSec->postGrade(&alice, 8);
+    oopSec->enroll(&alice);
+    alice.display();
+    oopSec->postGrade(&alice, 5);
+    aiSec->enroll(&alice);
 
     return 0;
 }
+
+// -------------Course-------------
+// Course Number: MTH10407
+// Course Name: OOP
+// Credits: 4
+// Prerequisites: 
+//         - Course Name: DSA
+// Sections: 
+//         - Section Number: OOP-24-25-2
+// --------------------------------
+// -------------Section------------
+// Section Number: AI-24-25-2
+// Day of Week: Thu
+// Time of Day: 10:00AM
+// Room: B101
+// Seating Capacity: 30
+// Students: 
+// Course Name: AI
+// -------------------------------
+// Student 001 haven't pass Prerequisites
+// Student 001 enrolled Section DSA-24-25-2 successfully
+// Grade 8 posted for Student 001 studying in Section DSA-24-25-2 successfully
+// Student 001 enrolled Section OOP-24-25-2 successfully
+// -------------Student-----------
+// Ssn: 001
+// Name: Bachelor
+// Major: Maths
+// Degree: Alice
+// Section Number: DSA-24-25-2 with Grade: 8
+// ------------------------------
+// Grade 5 posted for Student 001 studying in Section OOP-24-25-2 successfully
+// Student 001 enrolled Section AI-24-25-2 successfully
